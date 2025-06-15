@@ -5,6 +5,7 @@ The purpose of this repository is for training purposes apart of UCF Data-Enable
 
 ## Structure
 📦darts_idc_analysis<br>
+ ┣ 📂Analysis _- shared tools and plots for data analysis_<br>
  ┣ 📂CF _- capacitance vs frequencey csv files_<br>
  ┃ ┣ 📂CF_EXPOSED _- csv files for IDC boards that have been biased and exposed_<br>
  ┃ ┗ 📂CF_PRISTINE _- csv files for fresh IDC boards not exposed to elements_<br>
@@ -15,4 +16,6 @@ The purpose of this repository is for training purposes apart of UCF Data-Enable
  ┣ 📂Imgscans_EXPOSED _- IDC images that have been exposed_<br>
  ┣ 📂Imgscans_PRISTINE _- image scans of pristine boards_<br>
  ┣ 📜IDCSubmersionMasterlist_20250505.csv _- central reference list of IDC with information including experimental conditions, image filenames, and test parameters_<br>
+ ┣ 📜.gitignore<br>
  ┗ 📜README.md
+ 
