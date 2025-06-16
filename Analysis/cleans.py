@@ -7,14 +7,32 @@ import os
 # Change the current working directory to the darts_idc_analysis folder
 os.chdir("..")
 
+# read data
+master=pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
+
+#-----------------------------------------------------------------------------------
+# drop rows with NaN
+master=master.dropna(subset=["Solution"])
+master=master.dropna(subset=["Voltage"])
+
+# drop columns and rows that are not being used
+master=master.drop(master[master["Status"].str.contains("In progress",na=False)].index)
+master=master.drop(master[master["Status"].str.contains("Not started",na=False)].index)
+
+# drop columns that are unnecessary
+master=master.drop(["Location", "Date","Notes","CV_Post","CF_Post","Tags"], axis=1)
+
+#-----------------------------------------------------------------------------------
+# convert columns to the correct data type
+master["Voltage"]=master["Voltage"].astype(int)
+# add more here if needed
+
+
 # Get a DataFrame that is the merging of the master data and all the
 # CurrentTime files. Each row represents one current measurement at a given
 # time, and it has data about the sensor, solution, etc. I used this to easily
 # plot current vs time.
 def get_master_current_time():
-    # Read Data --------------------------------------------------------------------
-    master = pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
-
     # Join Data --------------------------------------------------------------------
     current_time_all = [] # Will be a concatenation of all currentTime csv files
 
@@ -58,3 +76,6 @@ def get_master_current_time():
     master_current_time["Sensor ID"] = master_current_time["Board ID"] + "_" + master_current_time["Sensor"]
 
     return master_current_time
+
+master.reset_index(drop=True)
+print(master)
