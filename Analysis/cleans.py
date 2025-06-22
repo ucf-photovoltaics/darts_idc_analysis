@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 import os
+import typing
 
 # Change the current working directory to the darts_idc_analysis folder
 os.chdir("..")
@@ -21,10 +22,15 @@ master=master.drop(master[master["Status"].str.contains("In progress",na=False)]
 master=master.drop(master[master["Status"].str.contains("Not started",na=False)].index)
 
 # drop columns that are unnecessary
+# CV_Post and CF_Post are all NaNs
 master=master.drop(["Location", "Date","Notes","CV_Post","CF_Post","Tags"], axis=1)
 
 # Create multilevel column to uniquely identify each sensor
 master["Sensor ID"] = master["Board ID"] + "_" + master["Sensor"]
+
+# Fix column naming inconsistency: "CV_Baseline " -> "CV_Baseline"
+master["CV_Baseline"] = master["CV_Baseline "]
+master.drop(columns="CV_Baseline ", inplace=True)
 
 #-----------------------------------------------------------------------------------
 # convert columns to the correct data type
@@ -37,8 +43,7 @@ def get_master():
 
 # Get a DataFrame that is the merging of the master data and all the
 # CurrentTime files. Each row represents one current measurement at a given
-# time, and it has data about the sensor, solution, etc. I used this to easily
-# plot current vs time.
+# time, and it has data about the sensor, solution, etc.
 def get_master_current_time():
     current_time_all = [] # List of all currentTime data frames
 
@@ -83,92 +88,84 @@ def get_master_current_time():
 
     return master_current_time
 
-# Get the result of joining master with CF_pristine
-# Pristine is the only valid option because the CF_Post column is empty
-def get_master_cf_pristine():
-    cf_pristine_all = [] # List of all CF pristine data frames
+# Returns the master merged with the CF_PRISTINE or CV_PRISTINE files, depending
+# on given parameter. Merging master with EXPOSED isn't possible due to
+# corresponding columns being empty in master
+def get_master_pristine(cf_or_cv: typing.Literal["CF", "CV"]):
+    pristine_all = [] # List of all pristine DataFrames, either cf or cv
 
-    # For each row, read CF file, and append to list
+    # For each row, read file, and append to list
     for _, row in master.iterrows():
-        # Get cf file name
-        cf_file_name = row["CF_Baseline"]
+        # Get file name
+        if cf_or_cv == "CF":
+            file_name = row["CF_Baseline"]
+        else:
+            file_name = row["CV_Baseline"]
         
         # Skip if file name is nan
-        if cf_file_name == np.nan:
+        if file_name == np.nan:
             continue
 
         # Try reading file, skip if not found
         try:
-            cf = pd.read_csv(f"CF/CF_PRISTINE/{cf_file_name}")
+            pristine = pd.read_csv(f"{cf_or_cv}/{cf_or_cv}_PRISTINE/{file_name}")
         except FileNotFoundError:
             continue
         
         # Add file_name column for joining purposes
-        cf["file_name"] = cf_file_name
+        pristine["file_name"] = file_name
 
         # Append this DataFrame to list
-        cf_pristine_all.append(cf)
+        pristine_all.append(pristine)
 
     # Convert lists to a concatenation of all their contents
-    cf_pristine_all = pd.concat(cf_pristine_all)
+    pristine_all = pd.concat(pristine_all, ignore_index=True)
 
     # Join master with cf_pristine_all
-    master_cf_pristine = master.merge(
-        cf_pristine_all,
-        left_on="CF_Baseline", right_on="file_name",
+    master_pristine = master.merge(
+        pristine_all,
+        left_on=f"{cf_or_cv}_Baseline",
+        right_on="file_name",
         how="inner"
     )
 
     # The file names are no longer needed
-    master_cf_pristine.drop(columns=["file_name", "Current"], inplace=True)
+    master_pristine.drop(columns=["file_name", f"{cf_or_cv}_Baseline"], inplace=True)
 
-    return master_cf_pristine
+    return master_pristine
 
-# Get the result of joining master with CV_PRISTINE files
-def get_master_cv_pristine():
-    cv_pristine_all = [] # List of all CV pristine data frames
+# Returns all of the CV or CF files joined together. This will include exposed
+# files, which are not available in master_cf_pristine or master_cv_pristine
+def get_cf_or_cv_joined(cf_or_cv: typing.Literal["CF", "CV"]):
+    # Lists to store DataFrames of pristine and exposed
+    pristine_all = []
+    exposed_all = []
 
-    # For each row, read CV file, and append to list
-    for _, row in master.iterrows():
-        # Get cv file name
-        cv_file_name = row["CV_Baseline "]
-        
-        # Skip if file name is nan
-        if cv_file_name == np.nan:
-            continue
+    # Loop over pristine, and exposed
+    for age in ["PRISTINE", "EXPOSED"]:
+        # Get folder which has the csv files, such as "CF/CF_EXPOSED"
+        folder = f"{cf_or_cv}/{cf_or_cv}_{age}"
 
-        # Try reading file, skip if not found
-        try:
-            cv = pd.read_csv(f"CV/CV_PRISTINE/{cv_file_name}")
-        except FileNotFoundError:
-            continue
-        
-        # Add file_name column for joining purposes
-        cv["file_name"] = cv_file_name
+        # For each file_name in folder
+        for file_name in os.listdir(folder):
+            # Read df
+            df = pd.read_csv(f"{folder}/{file_name}")
 
-        # Append this DataFrame to list
-        cv_pristine_all.append(cv)
+            # Append to list of pristine or exposed
+            if age == "PRISTINE":
+                pristine_all.append(df)
+            else:
+                exposed_all.append(df)
+    
+    # Convert both lists of DataFrames to concatenated DataFrames
+    pristine_all = pd.concat(pristine_all, ignore_index=True)
+    exposed_all = pd.concat(exposed_all, ignore_index=True)
 
-    # Convert lists to a concatenation of all their contents
-    cv_pristine_all = pd.concat(cv_pristine_all)
+    # Add column for age, which stores "PRISTINE"|"EXPOSED"
+    pristine_all["Age"] = "PRISTINE"
+    exposed_all["Age"] = "EXPOSED"
 
-    # Join master with cf_pristine_all
-    master_cv_pristine = master.merge(
-        cv_pristine_all,
-        left_on="CV_Baseline ", right_on="file_name",
-        how="inner"
-    )
+    # Merge pristine and exposed, since they are differentiated by "Age"
+    cf_or_cv_joined = pd.concat([pristine_all, exposed_all], ignore_index=True)
 
-    # The file names are no longer needed
-    master_cv_pristine.drop(columns=["file_name", "Current"], inplace=True)
-
-    return master_cv_pristine
-
-# Will return a concatenation of all CF files. This includes exposed files,
-# which are not in master_cf_pristine because the column is empty in master list
-def get_cf():
-    return
-
-# Will return a concatenation of all CV files
-def get_cv():
-    return
+    return cf_or_cv_joined
