@@ -1,0 +1,82 @@
+import cleans
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# Get master data
+master = cleans.get_master()
+
+# Column to store current integrals
+master["Current Integral"] = np.nan
+# For each row, read the currentTime file if possible, and store its integral
+for i, row in master.iterrows():
+    current_in = row["Current"]
+
+    # If current_in is a number, skip, leaving value as NaN
+    try:
+        float(current_in)
+        continue
+    except ValueError:
+        pass
+
+    # Else, current_in is a file, so read it
+    try:
+        current_time = pd.read_csv(f"CurrentTime/{current_in}")
+    except FileNotFoundError:
+        continue
+    
+    master.loc[i, "Current Integral"] = np.trapezoid(current_time["Current (mA)"], current_time["Time (ms)"])
+
+# Add column to store failure time in seconds
+master["Failure Time (s)"] = master["Time to Failure (ms)"] / 1000
+
+# Plot Data --------------------------------------------------------------------
+# Plot for each unique voltage
+for voltage in master["Voltage"].unique():
+    # Create a FacetGrid
+    g = sns.FacetGrid(
+        data=master[master["Voltage"] == voltage],
+        row="Pattern", row_order=["1", "4", "7", "10"],
+        hue="Sensor", palette={"U1":"#FF0000", "U2":"#B6FF00", "U3":"#00FFFF", "U4":"#7F00FF"},
+        margin_titles=True,
+        sharex=False, sharey=False
+    )
+
+    # Create scatterplots on the FacetGrid
+    g.map_dataframe(
+        sns.pointplot,
+        x="Solution", y="Failure Time (s)",
+        order=["DI Water", "Adipic Acid - 0.388mM", "Adipic Acid - 0.712mM", "Adipic Acid - 1.24mM", "Succinic 0.388mM", "Succinic 0.712 mM", "Succinic 1.425mM", "Succinic 3.6mM"],
+        errorbar=None
+    )
+
+    # Shrink font size
+    g.tick_params(labelsize="small")
+
+    # Set the text of the titles, which are already positioned properly
+    g.set_titles(
+        row_template="Pattern {row_name}",
+        col_template="{col_name}"
+    )
+
+    # Instead of an axis being L-shaped, make it a box
+    for ax in g.axes.flat:
+        ax.spines["top"].set_visible(True)
+        ax.spines["right"].set_visible(True)
+
+    # Add legend
+    g.add_legend(title="Sensor", edgecolor="#000000", frameon=True)
+
+    # Add main title
+    g.figure.suptitle(f"Mean Failure Time Vs Solution, by Pattern, and Sensor ({int(voltage)}V)")
+
+    # Adjust spacing
+    g.figure.subplots_adjust(
+        left=0.06,
+        bottom=0.08,
+        right=0.91,
+        top=0.94
+    )
+
+    plt.show()
