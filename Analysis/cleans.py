@@ -10,31 +10,29 @@ import typing
 os.chdir("..")
 
 # read data
-master=pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
+master = pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
 
 #-----------------------------------------------------------------------------------
 # drop rows with NaN
-master=master.dropna(subset=["Solution"])
-master=master.dropna(subset=["Voltage"])
+master = master.dropna(subset=["Solution"])
+master = master.dropna(subset=["Voltage"])
 
 # drop columns and rows that are not being used
-master=master.drop(master[master["Status"].str.contains("In progress",na=False)].index)
-master=master.drop(master[master["Status"].str.contains("Not started",na=False)].index)
+master = master[
+    (master["Status"] != "Not started") &
+    (master["Status"] != "In progress")
+]
 
 # drop columns that are unnecessary
-# CV_Post and CF_Post are all NaNs
-master=master.drop(["Location", "Date","Notes","CV_Post","CF_Post","Tags"], axis=1)
+master = master.drop(["Location", "Date", "Notes", "Tags"], axis=1)
 
 # Create multilevel column to uniquely identify each sensor
 master["Sensor ID"] = master["Board ID"] + "_" + master["Sensor"]
-
-# Fix column naming inconsistency: "CV_Baseline " -> "CV_Baseline"
-master["CV_Baseline"] = master["CV_Baseline "]
-master.drop(columns="CV_Baseline ", inplace=True)
+master.index = master["Sensor ID"]
 
 #-----------------------------------------------------------------------------------
 # convert columns to the correct data type
-master["Voltage"]=master["Voltage"].astype(int)
+master["Voltage"] = master["Voltage"].astype(int)
 # add more here if needed
 
 # Get the cleaned master data
