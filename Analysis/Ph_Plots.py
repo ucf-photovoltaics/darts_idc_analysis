@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 def plot_ph():
     # read file with the organized Ph data
-    ph_df=pd.read_csv("IDCSubmersionMasterlist_PH.csv")
+    ph_df=pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
 
     # split data into 2 data frames based on sensor type
     ph_df1=ph_df[ph_df["Sensor"]=="U1"]

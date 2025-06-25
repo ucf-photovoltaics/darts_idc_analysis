@@ -1,32 +1,9 @@
 import cleans
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 
 # Get master data
 master = cleans.get_master()
-
-# Column to store current integrals
-master["Current Integral"] = np.nan
-# For each row, read the currentTime file if possible, and store its integral
-for i, row in master.iterrows():
-    current_in = row["Current"]
-
-    # If current_in is a number, skip, leaving value as NaN
-    try:
-        float(current_in)
-        continue
-    except ValueError:
-        pass
-
-    # Else, current_in is a file, so read it
-    try:
-        current_time = pd.read_csv(f"CurrentTime/{current_in}")
-    except FileNotFoundError:
-        continue
-    
-    master.loc[i, "Current Integral"] = np.trapezoid(current_time["Current (mA)"], current_time["Time (ms)"])
 
 # Add column to store failure time in seconds
 master["Failure Time (s)"] = master["Time to Failure (ms)"] / 1000
