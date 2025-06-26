@@ -6,9 +6,6 @@ import numpy as np
 import os
 import typing
 
-# Change the current working directory to the darts_idc_analysis folder
-os.chdir("..")
-
 # read data
 master = pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
 
@@ -86,51 +83,63 @@ def get_master_current_time():
 
     return master_current_time
 
-# Returns the master merged with the CF_PRISTINE or CV_PRISTINE files, depending
-# on given parameter. Merging master with EXPOSED isn't possible due to
-# corresponding columns being empty in master
-def get_master_pristine(cf_or_cv: typing.Literal["CF", "CV"]):
-    pristine_all = [] # List of all pristine DataFrames, either cf or cv
+# Returns the master merged with all CF files, or all CV files. An "Age" column
+# is added to differentiate "PRISTINE" vs "EXPOSED"
+def get_master_cf_or_cv(cf_or_cv: typing.Literal["CF", "CV"]):
+    df_all = [] # List of all DataFrames, either cf or cv, has an Age column
 
-    # For each row, read file, and append to list
-    for _, row in master.iterrows():
-        # Get file name
-        if cf_or_cv == "CF":
-            file_name = row["CF_Baseline"]
-        else:
-            file_name = row["CV_Baseline"]
-        
-        # Skip if file name is nan
-        if file_name == np.nan:
-            continue
+    # Populate df_all with both ages
+    for age in ["PRISTINE", "EXPOSED"]:
+        # For each row, read file, and append to list
+        for _, row in master.iterrows():
+            # Get file name
+            baseline_or_post = "Baseline" if age == "PRISTINE" else "Post"
+            file_name = row[f"{cf_or_cv}_{baseline_or_post}"]
+            
+            # Skip if file name is nan
+            if file_name == np.nan:
+                continue
 
-        # Try reading file, skip if not found
-        try:
-            pristine = pd.read_csv(f"{cf_or_cv}/{cf_or_cv}_PRISTINE/{file_name}")
-        except FileNotFoundError:
-            continue
-        
-        # Add file_name column for joining purposes
-        pristine["file_name"] = file_name
+            # Try reading file, skip if not found
+            try:
+                df = pd.read_csv(f"{cf_or_cv}/{cf_or_cv}_{age}/{file_name}")
+            except FileNotFoundError:
+                continue
+            
+            # Add Age column to differentiate PRISTINE and EXPOSED
+            df["Age"] = age
 
-        # Append this DataFrame to list
-        pristine_all.append(pristine)
+            # Add File Name column for joining purposes
+            df["File Name"] = file_name
+
+            # Append this DataFrame to list
+            df_all.append(df)
 
     # Convert lists to a concatenation of all their contents
-    pristine_all = pd.concat(pristine_all, ignore_index=True)
-
-    # Join master with cf_pristine_all
+    df_all = pd.concat(df_all, ignore_index=True)
+    
+    # Join master with baseline files
     master_pristine = master.merge(
-        pristine_all,
+        df_all,
         left_on=f"{cf_or_cv}_Baseline",
-        right_on="file_name",
+        right_on="File Name",
+        how="inner"
+    )
+    # Join master with post files
+    master_exposed = master.merge(
+        df_all,
+        left_on=f"{cf_or_cv}_Post",
+        right_on="File Name",
         how="inner"
     )
 
-    # The file names are no longer needed
-    master_pristine.drop(columns=["file_name", f"{cf_or_cv}_Baseline"], inplace=True)
+    # Concat both merges into the result
+    master_cf_or_cv = pd.concat([master_pristine, master_exposed])
 
-    return master_pristine
+    # The file names are no longer needed
+    master_cf_or_cv.drop(columns=["File Name", f"{cf_or_cv}_Baseline", f"{cf_or_cv}_Post"], inplace=True)
+
+    return master_cf_or_cv
 
 # Returns all of the CV or CF files joined together. This will include exposed
 # files, which are not available in master_cf_pristine or master_cv_pristine
