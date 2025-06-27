@@ -1,45 +1,80 @@
 # Contains functions that produce cleaned and joined versions of the data. Feel
 # free to add any functions to this file, and use any functions from here.
 
+import reads
 import pandas as pd
 import numpy as np
 import os
 import typing
+import cv2
 
-# read data
-master = pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
+# Internal helper function to get a dendrite score of a sensor image, given a
+# pristine and exposed sensor
+def _get_dendrite_score(pristine_file, exposed_file):
+    # Skip if files are nan
+    if pristine_file == np.nan or exposed_file == np.nan:
+        return np.nan
+    # Skip if files don't exist
+    if not os.path.isfile(f"Imgscans_PRISTINE_sensors/{pristine_file}") or\
+        not os.path.isfile(f"Imgscans_EXPOSED_sensors/{exposed_file}"):
+        return np.nan
+    
+    # Read images
+    pristine_image = cv2.imread(f"Imgscans_PRISTINE_sensors/{pristine_file}")
+    exposed_image = cv2.imread(f"Imgscans_EXPOSED_sensors/{exposed_file}")
 
-#-----------------------------------------------------------------------------------
-# drop rows with NaN
-master = master.dropna(subset=["Solution"])
-master = master.dropna(subset=["Voltage"])
+    # RGB analysis
+    # TODO Replace np.mean with actual RGB analysis - Annabel
+    score = np.mean(exposed_image)
 
-# drop columns and rows that are not being used
-master = master[
-    (master["Status"] != "Not started") &
-    (master["Status"] != "In progress")
-]
-
-# drop columns that are unnecessary
-master = master.drop(["Location", "Date", "Notes", "Tags"], axis=1)
-
-# Create multilevel column to uniquely identify each sensor
-master["Sensor ID"] = master["Board ID"] + "_" + master["Sensor"]
-master.index = master["Sensor ID"]
-
-#-----------------------------------------------------------------------------------
-# convert columns to the correct data type
-master["Voltage"] = master["Voltage"].astype(int)
-# add more here if needed
+    return score
 
 # Get the cleaned master data
 def get_master():
+    # Read in data
+    master = reads.get_master()
+
+    # Cleans -------------------------------------------------------------------
+
+    # Convert columns to the correct data type
+    master["Voltage"] = pd.to_numeric(master["Voltage"], errors="coerce")
+    master["Pattern"] = pd.to_numeric(master["Pattern"], errors="coerce")
+    # TODO Do this for every column
+
+    # Drop duplicate indices
+    master = master[~master.index.duplicated(keep="first")]
+    # drop rows with NaN
+    master.dropna(subset=["Solution", "Voltage", "Pattern"], inplace=True)
+    # drop columns and rows that are not being used
+    master = master[(master["Status"] != "Not started") & (master["Status"] != "In progress")]
+    # drop columns that are unnecessary
+    master = master.drop(["Location", "Notes", "Tags"], axis=1)
+    
+    # Add image file names
+    for file_name in os.listdir("Imgscans_PRISTINE_sensors"):
+        batch, pattern, id, _, sensor = file_name.split(".")[0].split("_")
+        pattern = int(pattern)
+        mask = (master["Pattern"] == pattern) & (master["Sensor"] == sensor)
+        master.loc[mask, "Image_PRISTINE"] = file_name
+    for file_name in os.listdir("Imgscans_EXPOSED_sensors"):
+        batch, pattern, id, _, sensor = file_name.split(".")[0].split("_")
+        board_id = "_".join([batch, pattern, id])
+        if (board_id, sensor) in master.index:
+            master.loc[(board_id, sensor), "Image_EXPOSED"] = file_name
+    # TODO Remove CV, CF, and CurrentTime file names from the stored CSV. Add
+    # code here to populate those columns automatically
+
+    # Calculate dendrite score
+    master["Dendrite Score"] = master.apply(lambda row: _get_dendrite_score(row["Image_PRISTINE"], row["Image_EXPOSED"]), axis=1)
+
     return master
 
 # Get a DataFrame that is the merging of the master data and all the
 # CurrentTime files. Each row represents one current measurement at a given
 # time, and it has data about the sensor, solution, etc.
 def get_master_current_time():
+    master = get_master()
+
     current_time_all = [] # List of all currentTime data frames
 
     # For each row, read the currentTime file if possible, and append it to list
@@ -86,6 +121,8 @@ def get_master_current_time():
 # Returns the master merged with all CF files, or all CV files. An "Age" column
 # is added to differentiate "PRISTINE" vs "EXPOSED"
 def get_master_cf_or_cv(cf_or_cv: typing.Literal["CF", "CV"]):
+    master = get_master()
+
     df_all = [] # List of all DataFrames, either cf or cv, has an Age column
 
     # Populate df_all with both ages

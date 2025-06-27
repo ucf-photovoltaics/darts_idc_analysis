@@ -14,7 +14,7 @@ for voltage in master["Voltage"].unique():
     # Create a FacetGrid
     g = sns.FacetGrid(
         data=master[master["Voltage"] == voltage],
-        row="Pattern", row_order=["1", "4", "7", "10"],
+        row="Pattern", row_order=[1, 4, 7, 10],
         hue="Sensor", palette={"U1":"#FF0000", "U2":"#B6FF00", "U3":"#00FFFF", "U4":"#7F00FF"},
         margin_titles=True,
         sharex=False, sharey=False

@@ -15,7 +15,7 @@ for voltage in master_current_time["Voltage"].unique():
     # Create a FacetGrid
     g = sns.FacetGrid(
         data=master_current_time[master_current_time["Voltage"] == voltage],
-        row="Pattern", row_order=["1", "4", "7", "10"],
+        row="Pattern", row_order=[1, 4, 7, 10],
         col="Solution", col_order=["DI Water", "Adipic Acid - 0.388mM", "Adipic Acid - 0.712mM", "Adipic Acid - 1.24mM", "Succinic 0.388mM", "Succinic 0.712 mM", "Succinic 1.425mM", "Succinic 3.6mM"],
         hue="Sensor", palette={"U1":"#FF0000", "U2":"#B6FF00", "U3":"#00FFFF", "U4":"#7F00FF"},
         margin_titles=True,
