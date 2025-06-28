@@ -2,12 +2,15 @@
 # solution, pattern, sensor, and voltage. This plot uses the master_current_time
 # joined data from cleans.py.
 
-import cleans
+import adds
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Get joined data
-master_current_time = cleans.get_master_current_time()
+master_current_time = adds.get_master_current_time()
+
+# Add a unique sensor identifier
+master_current_time["Sensor ID"] = master_current_time["Board ID"] + "_" + master_current_time["Sensor"]
 
 # Plot Data --------------------------------------------------------------------
 # Plot for each unique voltage

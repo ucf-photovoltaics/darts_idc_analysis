@@ -1,10 +1,12 @@
-import pandas as pd
+# Plot pH as a function of failure time, for sensors U1 and U4
+
+import adds
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 def plot_ph():
     # read file with the organized Ph data
-    ph_df=pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
+    ph_df=adds.get_master()
 
     # split data into 2 data frames based on sensor type
     ph_df1=ph_df[ph_df["Sensor"]=="U1"]

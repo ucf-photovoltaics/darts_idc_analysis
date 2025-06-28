@@ -1,5 +1,6 @@
-# Contains functions that produce cleaned and joined versions of the data. Feel
-# free to add any functions to this file, and use any functions from here.
+# This is the second stage of the pipeline. Additions are made to the data, such
+# as new columns, and joins. Data removal should be minimal here, to prevent
+# loss of useful data.
 
 import reads
 import pandas as pd
@@ -33,34 +34,24 @@ def _get_dendrite_score(pristine_file, exposed_file):
 def get_master():
     # Read in data
     master = reads.get_master()
-
-    # Cleans -------------------------------------------------------------------
-
-    # Convert columns to the correct data type
-    master["Voltage"] = pd.to_numeric(master["Voltage"], errors="coerce")
-    master["Pattern"] = pd.to_numeric(master["Pattern"], errors="coerce")
-    # TODO Do this for every column
-
-    # Drop duplicate indices
-    master = master[~master.index.duplicated(keep="first")]
-    # drop rows with NaN
-    master.dropna(subset=["Solution", "Voltage", "Pattern"], inplace=True)
-    # drop columns and rows that are not being used
-    master = master[(master["Status"] != "Not started") & (master["Status"] != "In progress")]
-    # drop columns that are unnecessary
-    master = master.drop(["Location", "Notes", "Tags"], axis=1)
     
     # Add image file names
     for file_name in os.listdir("Imgscans_PRISTINE_sensors"):
+        # Get components
         batch, pattern, id, _, sensor = file_name.split(".")[0].split("_")
         pattern = int(pattern)
+        # Mask only where pattern and sensor match
         mask = (master["Pattern"] == pattern) & (master["Sensor"] == sensor)
+        # Store the file name using the mask
         master.loc[mask, "Image_PRISTINE"] = file_name
     for file_name in os.listdir("Imgscans_EXPOSED_sensors"):
+        # Get components
         batch, pattern, id, _, sensor = file_name.split(".")[0].split("_")
         board_id = "_".join([batch, pattern, id])
-        if (board_id, sensor) in master.index:
-            master.loc[(board_id, sensor), "Image_EXPOSED"] = file_name
+        # Mask only where board ID and sensor match
+        mask = (master["Board ID"] == board_id) & (master["Sensor"] == sensor)
+        # Store the file name using the mask
+        master.loc[mask, "Image_EXPOSED"] = file_name
     # TODO Remove CV, CF, and CurrentTime file names from the stored CSV. Add
     # code here to populate those columns automatically
 
@@ -79,23 +70,16 @@ def get_master_current_time():
 
     # For each row, read the currentTime file if possible, and append it to list
     for _, row in master.iterrows():
+        # Get the current_in value, which could be a float or file name
         current_in = row["Current"]
 
-        # If current_in is a number, skip
-        try:
-            float(current_in)
+        # Read file, and skip if result is None
+        current_time = reads.get_current_time(current_in)
+        if current_time is None:
             continue
-        except ValueError:
-            pass
 
-        # Else, current_in is a file, so read it
-        try:
-            current_time = pd.read_csv(f"CurrentTime/{current_in}")
-        except FileNotFoundError:
-            continue
-        
         # Add file_name column for joining purposes
-        current_time["file_name"] = current_in
+        current_time["File Name"] = current_in
 
         # Append this current_time to current_time_all
         current_time_all.append(current_time)
@@ -106,15 +90,12 @@ def get_master_current_time():
     # Join master with current_time_all
     master_current_time = master.merge(
         current_time_all,
-        left_on="Current", right_on="file_name",
+        left_on="Current", right_on="File Name",
         how="inner"
     )
 
     # The file names are no longer needed
-    master_current_time.drop(columns=["file_name", "Current"], inplace=True)
-
-    # Create multilevel column to identify each sensor
-    master_current_time["Sensor ID"] = master_current_time["Board ID"] + "_" + master_current_time["Sensor"]
+    master_current_time.drop(columns=["File Name", "Current"], inplace=True)
 
     return master_current_time
 
@@ -133,14 +114,9 @@ def get_master_cf_or_cv(cf_or_cv: typing.Literal["CF", "CV"]):
             baseline_or_post = "Baseline" if age == "PRISTINE" else "Post"
             file_name = row[f"{cf_or_cv}_{baseline_or_post}"]
             
-            # Skip if file name is nan
-            if file_name == np.nan:
-                continue
-
-            # Try reading file, skip if not found
-            try:
-                df = pd.read_csv(f"{cf_or_cv}/{cf_or_cv}_{age}/{file_name}")
-            except FileNotFoundError:
+            # Read df, skipping if result is None
+            df = reads.get_cf_or_cv(file_name)
+            if df is None:
                 continue
             
             # Add Age column to differentiate PRISTINE and EXPOSED
@@ -177,39 +153,3 @@ def get_master_cf_or_cv(cf_or_cv: typing.Literal["CF", "CV"]):
     master_cf_or_cv.drop(columns=["File Name", f"{cf_or_cv}_Baseline", f"{cf_or_cv}_Post"], inplace=True)
 
     return master_cf_or_cv
-
-# Returns all of the CV or CF files joined together. This will include exposed
-# files, which are not available in master_cf_pristine or master_cv_pristine
-def get_cf_or_cv_joined(cf_or_cv: typing.Literal["CF", "CV"]):
-    # Lists to store DataFrames of pristine and exposed
-    pristine_all = []
-    exposed_all = []
-
-    # Loop over pristine, and exposed
-    for age in ["PRISTINE", "EXPOSED"]:
-        # Get folder which has the csv files, such as "CF/CF_EXPOSED"
-        folder = f"{cf_or_cv}/{cf_or_cv}_{age}"
-
-        # For each file_name in folder
-        for file_name in os.listdir(folder):
-            # Read df
-            df = pd.read_csv(f"{folder}/{file_name}")
-
-            # Append to list of pristine or exposed
-            if age == "PRISTINE":
-                pristine_all.append(df)
-            else:
-                exposed_all.append(df)
-    
-    # Convert both lists of DataFrames to concatenated DataFrames
-    pristine_all = pd.concat(pristine_all, ignore_index=True)
-    exposed_all = pd.concat(exposed_all, ignore_index=True)
-
-    # Add column for age, which stores "PRISTINE"|"EXPOSED"
-    pristine_all["Age"] = "PRISTINE"
-    exposed_all["Age"] = "EXPOSED"
-
-    # Merge pristine and exposed, since they are differentiated by "Age"
-    cf_or_cv_joined = pd.concat([pristine_all, exposed_all], ignore_index=True)
-
-    return cf_or_cv_joined

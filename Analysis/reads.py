@@ -1,11 +1,9 @@
-# This is the first layer of the pipeline. Each function here will read and
+# This is the first stage of the pipeline. Each function here will read and
 # return a certain type of file in the data. This file standardizes reading each
-# file, because there should be only one valid way to read data. Cleaning has
-# various possibilities though, so the cleans.py is a separate layer of the
-# pipeline. Reading should not lose useful data, while cleaning may.
+# file, because there should be only one valid way to read data. Data loss
+# should only occur here if it really needs to.
 
 import pandas as pd
-import numpy as np
 import cv2
 import os
 import typing
@@ -16,19 +14,55 @@ import typing
 def get_master():
     master = pd.read_csv("IDCSubmersionMasterlist_20250505.csv")
 
-    # Set index to a unique sensor identifier
-    master.set_index(["Board ID", "Sensor"], inplace=True, drop=False)
-    master.sort_index(inplace=True)
+    # Cast numeric columns to numbers
+    numeric_cols = ["Voltage", "Pattern"]
+    master[numeric_cols] = master[numeric_cols].apply(lambda col: pd.to_numeric(col, errors="coerce"))
+    # Do not drop NaN rows, because these rows could be useful
 
     return master
 
 # Get a CurrentTime file as a DataFrame with proper data types
 def get_current_time(file_name: str):
-    return
+    try:
+        # Read the file
+        current_time = pd.read_csv(f"CurrentTime/{file_name}")
+    except FileNotFoundError:
+        # Return None if not readable
+        return None
+
+    # Cast all columns to numbers
+    current_time = current_time.apply(lambda col: pd.to_numeric(col, errors="coerce"))
+    # Drop non-number rows
+    current_time.dropna(inplace=True)
+
+    return current_time
 
 # Get a CF/CV file, (PRISTINE/EXPOSED), as a DataFrame with proper data types
 def get_cf_or_cv(file_name: str):
-    return
+    # Get 7 string components of file name
+    components = file_name.split(".")[0].split("_")
+    # Return None if name is unconventional
+    if len(components) != 7:
+        return None
+
+    # Get components needed for file path
+    iteration = int(components[6])
+    age = "PRISTINE" if iteration == 0 else "EXPOSED"
+    cf_or_cv = components[5]
+
+    try:
+        # Read the file
+        df = pd.read_csv(f"{cf_or_cv}/{cf_or_cv}_{age}/{file_name}")
+    except FileNotFoundError:
+        # Return None if not readable
+        return None
+
+    # Cast all columns to numbers
+    df = df.apply(lambda col: pd.to_numeric(col, errors="coerce"))
+    # Drop non-number rows
+    df.dropna(inplace=True)
+
+    return df
 
 # Stores the coords as percentages of the sensor bounds
 # Sample use: pattern_to_sensor_to_coords[pattern][sensor]["x1"|"y2"...]
@@ -59,16 +93,14 @@ pattern_to_sensor_to_coords = {
     }
 }
 
-# Get a cropped image of a sensor, given (Board ID, Sensor), and EXPOSED or
+# Get a cropped image of a sensor, given row from master, and EXPOSED or
 # PRISTINE
-def get_sensor_image(master_index: tuple, age: typing.Literal["EXPOSED", "PRISTINE"]):
-    board_id, sensor = master_index
-
+def get_sensor_image(master_row, age: typing.Literal["EXPOSED", "PRISTINE"]):
     # Get list of file names that start with this board ID
-    matching_file_names = [file for file in os.listdir(f"Imgscans_{age}_edited") if file.startswith(board_id)]
-    # If no files are found, return nan
+    matching_file_names = [file for file in os.listdir(f"Imgscans_{age}_edited") if file.startswith(master_row["Board ID"])]
+    # If no files are found, return None
     if len(matching_file_names) == 0:
-        return np.nan
+        return None
     
     # Take the first found file and use it
     file_name = matching_file_names[0]
@@ -79,9 +111,9 @@ def get_sensor_image(master_index: tuple, age: typing.Literal["EXPOSED", "PRISTI
     # Get width and height, to be used for calculating crop coords
     height, width, _ = board_img.shape
     # Get pattern
-    pattern = int(board_id.split("_")[1])
+    pattern = int(master_row["Board ID"].split("_")[1])
     # Calculate crop coords based on crop percentages
-    coords = pattern_to_sensor_to_coords[pattern][sensor]
+    coords = pattern_to_sensor_to_coords[pattern][master_row["Sensor"]]
     x1 = round(coords["x1"] * width)
     x2 = round(coords["x2"] * width)
     y1 = round(coords["y1"] * height)

@@ -1,18 +1,17 @@
 # A place for intensive code that cannot be reasonably ran each time the
-# DataFrame is generated
+# DataFrame is generated. This code should only be run occasionally when new
+# data is added.
 
 import reads
 import cv2
-import numpy as np
 import os
 
 # Helper function used to generate a singular sensor image
-def _gen_sensor_image(master_index: tuple, master_row, age):
+def _gen_sensor_image(master_row, age):
     # Read cropped sensor image
-    sensor_image = reads.get_sensor_image(master_index, age)
-
+    sensor_image = reads.get_sensor_image(master_row, age)
     # If image can't be read, skip
-    if sensor_image is np.nan:
+    if sensor_image is None:
         return
     
     # Get values to construct file name, and store file
@@ -26,7 +25,13 @@ def _gen_sensor_image(master_index: tuple, master_row, age):
 # Generate the cropped sensor images and store them
 def gen_sensor_images():
     master = reads.get_master()
-    
+
+    # Drop NaNs because these columns are needed for creating the file name
+    master.dropna(subset=["Board ID", "Date", "Sensor"], inplace=True)
+
+    # Set index to a unique sensor identifier
+    master.set_index(["Board ID", "Sensor"], inplace=True, drop=False)
+    master.sort_index(inplace=True)
     # Drop duplicate indices
     master = master[~master.index.duplicated(keep='first')]
 
@@ -38,18 +43,21 @@ def gen_sensor_images():
             batch, pattern, id, _ = pristine_file_name.split("_")
             board_id = "_".join([batch, pattern, id])
 
-            _gen_sensor_image((board_id, sensor), master.loc[(board_id, sensor)], "PRISTINE")
+            # Get master rows that match this file
+            rows = master[(master["Board ID"] == board_id) & (master["Sensor"] == sensor)]
+            # Skip if no master rows match
+            if len(rows) == 0:
+                continue
+            # Generate image using the first found row
+            _gen_sensor_image(rows.iloc[0], "PRISTINE")
             
             # Show progress
             generated += 1
             print(f"Images generated: {generated}")
 
-    # Drop nans because these columns are needed for creating the file name
-    master.dropna(subset=["Board ID", "Date", "Sensor"], inplace=True)
-
     # For each row in master, generate the EXPOSED image if possible
-    for index, row in master.iterrows():
-        _gen_sensor_image(index, row, "EXPOSED")
+    for _, row in master.iterrows():
+        _gen_sensor_image(row, "EXPOSED")
         
         # Show progress
         generated += 1

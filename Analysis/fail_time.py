@@ -1,9 +1,14 @@
-import cleans
+# Plot mean failure time vs solution, separated by pattern, sensor, and voltage.
+
+import adds
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Get master data
-master = cleans.get_master()
+master = adds.get_master()
+
+# Drop NaN rows
+master.dropna(subset="Voltage", inplace=True)
 
 # Add column to store failure time in seconds
 master["Failure Time (s)"] = master["Time to Failure (ms)"] / 1000
