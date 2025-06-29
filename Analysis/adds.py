@@ -9,29 +9,8 @@ import os
 import typing
 import cv2
 
-# Internal helper function to get a dendrite score of a sensor image, given a
-# pristine and exposed sensor
-def _get_dendrite_score(pristine_file, exposed_file):
-    # Skip if files are nan
-    if pristine_file == np.nan or exposed_file == np.nan:
-        return np.nan
-    # Skip if files don't exist
-    if not os.path.isfile(f"Imgscans_PRISTINE_sensors/{pristine_file}") or\
-        not os.path.isfile(f"Imgscans_EXPOSED_sensors/{exposed_file}"):
-        return np.nan
-    
-    # Read images
-    pristine_image = cv2.imread(f"Imgscans_PRISTINE_sensors/{pristine_file}")
-    exposed_image = cv2.imread(f"Imgscans_EXPOSED_sensors/{exposed_file}")
-
-    # RGB analysis
-    # TODO Replace np.mean with actual RGB analysis - Annabel
-    score = np.mean(exposed_image)
-
-    return score
-
 # Get the cleaned master data
-def get_master():
+def get_master(dendrite_score_col=False):
     # Read in data
     master = reads.get_master()
     
@@ -55,8 +34,45 @@ def get_master():
     # TODO Remove CV, CF, and CurrentTime file names from the stored CSV. Add
     # code here to populate those columns automatically
 
-    # Calculate dendrite score
-    master["Dendrite Score"] = master.apply(lambda row: _get_dendrite_score(row["Image_PRISTINE"], row["Image_EXPOSED"]), axis=1)
+    if dendrite_score_col:
+        # Get dendrite score of the exposed file, compared to the pristine
+        def gen_dendrite_score(master_index, master_row):
+            # Read images
+            pristine_image = reads.get_sensor_image(master_row["Image_PRISTINE"], "PRISTINE")
+            exposed_image = reads.get_sensor_image(master_row["Image_EXPOSED"], "EXPOSED")
+
+            # Return NaN if images couldn't be read
+            if pristine_image is None or exposed_image is None:
+                # NaN is used instead of None because NaN is for numbers, None
+                # is for objects
+                return np.nan
+
+            # Reorder from BGR to RGB
+            pristine_image = cv2.cvtColor(pristine_image, cv2.COLOR_BGR2RGB)
+            exposed_image = cv2.cvtColor(exposed_image, cv2.COLOR_BGR2RGB)
+
+            # Split into RGB components
+            r1, g1, b1 = cv2.split(pristine_image)
+            r2, g2, b2 = cv2.split(exposed_image)
+
+            # Convert rgb arrays into mean values
+            r1, g1, b1 = np.mean(r1), np.mean(g1), np.mean(b1)
+            r2, g2, b2 = np.mean(r2), np.mean(g2), np.mean(b2)
+
+            # Generate and store score
+            master.loc[master_index, "Dendrite Score"] = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1)
+
+            # Store RGB values
+            master.loc[master_index, "R_PRISTINE"] = r1
+            master.loc[master_index, "G_PRISTINE"] = g1
+            master.loc[master_index, "B_PRISTINE"] = b1
+            master.loc[master_index, "R_EXPOSED"] = r2
+            master.loc[master_index, "G_EXPOSED"] = g2
+            master.loc[master_index, "B_EXPOSED"] = b2
+
+        # Populate mean RGB and dendrite score
+        for i, row in master.iterrows():
+            gen_dendrite_score(i, row)
 
     return master
 
