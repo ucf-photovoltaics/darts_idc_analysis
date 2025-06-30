@@ -8,8 +8,6 @@ def plot_ph():
     
     df=adds.get_master()
 
-    ph_df=adds.get_master()
-
     # remove solutions with no recorded Ph so they don't take up space in the legend
     df=df[(df["Solution"]=="Adipic Acid - 1.24mM")|(df["Solution"]=="Adipic Acid - 0.712mM")|(df["Solution"]=="Adipic Acid - 0.388mM")|(df["Solution"]=="Succinic 0.388mM")]
 
