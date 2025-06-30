@@ -8,7 +8,6 @@ def plot_ph():
     
     df=adds.get_master()
 
-    # read file with the organized Ph data
     ph_df=adds.get_master()
 
     # remove solutions with no recorded Ph so they don't take up space in the legend
