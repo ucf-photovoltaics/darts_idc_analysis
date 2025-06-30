@@ -1,32 +1,14 @@
-import cleans
-import pandas as pd
+# Plot mean failure time vs solution, separated by pattern, sensor, and voltage.
+
+import adds
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 
 # Get master data
-master = cleans.get_master()
+master = adds.get_master()
 
-# Column to store current integrals
-master["Current Integral"] = np.nan
-# For each row, read the currentTime file if possible, and store its integral
-for i, row in master.iterrows():
-    current_in = row["Current"]
-
-    # If current_in is a number, skip, leaving value as NaN
-    try:
-        float(current_in)
-        continue
-    except ValueError:
-        pass
-
-    # Else, current_in is a file, so read it
-    try:
-        current_time = pd.read_csv(f"CurrentTime/{current_in}")
-    except FileNotFoundError:
-        continue
-    
-    master.loc[i, "Current Integral"] = np.trapezoid(current_time["Current (mA)"], current_time["Time (ms)"])
+# Drop NaN rows
+master.dropna(subset="Voltage", inplace=True)
 
 # Add column to store failure time in seconds
 master["Failure Time (s)"] = master["Time to Failure (ms)"] / 1000
@@ -37,7 +19,7 @@ for voltage in master["Voltage"].unique():
     # Create a FacetGrid
     g = sns.FacetGrid(
         data=master[master["Voltage"] == voltage],
-        row="Pattern", row_order=["1", "4", "7", "10"],
+        row="Pattern", row_order=[1, 4, 7, 10],
         hue="Sensor", palette={"U1":"#FF0000", "U2":"#B6FF00", "U3":"#00FFFF", "U4":"#7F00FF"},
         margin_titles=True,
         sharex=False, sharey=False
