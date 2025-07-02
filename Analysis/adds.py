@@ -8,6 +8,7 @@ import numpy as np
 import os
 import typing
 import cv2
+import math
 
 # Get the cleaned master data
 def get_master(dendrite_score_col=False):
@@ -60,7 +61,7 @@ def get_master(dendrite_score_col=False):
             r2, g2, b2 = np.mean(r2), np.mean(g2), np.mean(b2)
 
             # Generate and store score
-            master.loc[master_index, "Dendrite Score"] = abs(r2 - r1) + abs(g2 - g1) + abs(b2 - b1)
+            master.loc[master_index, "Dendrite Score"] = math.sqrt((r2 - r1)**2 + (g2 - g1)**2 + (b2 - b1)**2)
 
             # Store RGB values
             master.loc[master_index, "R_PRISTINE"] = r1
