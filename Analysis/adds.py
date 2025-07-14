@@ -71,6 +71,13 @@ def get_master(dendrite_score_col=False):
             master.loc[master_index, "G_EXPOSED"] = g2
             master.loc[master_index, "B_EXPOSED"] = b2
 
+            # Get brightness values for pristine and exposed images using the mean
+            # of the RGB values and store in their own columns
+            pristine_brightness=np.mean([r1, g1, b1])
+            exposed_brightness=np.mean([r2, g2, b2])
+            master.loc[master_index, "Brightness Pristine"]=pristine_brightness
+            master.loc[master_index, "Brightness Exposed"]=exposed_brightness
+
         # Populate mean RGB and dendrite score
         for i, row in master.iterrows():
             gen_dendrite_score(i, row)

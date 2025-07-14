@@ -33,6 +33,9 @@ if st.button("RGB Analysis 3D"):
 if st.button("RGB Analysis Box Plots"):
     run_plot_script("rgb_boxplots.py")
 
+if st.button("Grayscale Box Plots"):
+    run_plot_script("grayscale_boxplots.py")
+
 if st.button("Correlation Heatmap"):
     run_plot_script("corr_heatmap.py")
 
