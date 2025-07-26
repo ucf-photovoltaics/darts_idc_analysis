@@ -21,29 +21,45 @@ if "--as-streamlit" not in sys.argv:
 
 # Run Streamlit app ------------------------------------------------------------
 
-st.title("IDC Analysis Plots")
+st.title("IDC Analysis Plotting Hub")
 
-if st.button("RGB Analysis 3D"):
-    subprocess.Popen([sys.executable, "Analysis/rgb_3d.py"], cwd=repo_dir)
+st.header("Plots")
+with st.container(border=True):
+    if st.button("RGB Analysis 3D"):
+        subprocess.Popen([sys.executable, "Analysis/rgb_3d.py"], cwd=repo_dir)
+    st.text("Maps RGB values to XYZ coordinates to view the average color of all boards, separated by board type and pristine/exposed")
 
-if st.button("RGB Analysis Box Plots"):
-    subprocess.Popen([sys.executable, "Analysis/rgb_boxplots.py"], cwd=repo_dir)
+with st.container(border=True):
+    if st.button("RGB Analysis Box Plots"):
+        subprocess.Popen([sys.executable, "Analysis/rgb_boxplots.py"], cwd=repo_dir)
+    st.text("Plots the differences in average RGB channels from pristine to exposed boards")
 
-if st.button("Grayscale Box Plots"):
-    subprocess.Popen([sys.executable, "Analysis/grayscale_boxplots.py"], cwd=repo_dir)
+with st.container(border=True):
+    if st.button("Grayscale Box Plots"):
+        subprocess.Popen([sys.executable, "Analysis/grayscale_boxplots.py"], cwd=repo_dir)
+    st.text("Plots the average brightness of each board")
 
-if st.button("Correlation Heatmap"):
-    subprocess.Popen([sys.executable, "Analysis/corr_heatmap.py"], cwd=repo_dir)
+with st.container(border=True):
+    if st.button("Correlation Heatmap"):
+        subprocess.Popen([sys.executable, "Analysis/corr_heatmap.py"], cwd=repo_dir)
+    st.text("Plots the correlations between all combinations of two variables")
 
-if st.button("Current Vs Time"):
-    subprocess.Popen([sys.executable, "Analysis/current_time.py"], cwd=repo_dir)
+with st.container(border=True):
+    if st.button("Current Vs Time"):
+        subprocess.Popen([sys.executable, "Analysis/current_time.py"], cwd=repo_dir)
+    st.text("Plot current as a function of time for each tested sensor, separated by solution, board type, and sensor")
 
-if st.button("Failure Time Vs Solution"):
-    subprocess.Popen([sys.executable, "Analysis/fail_time.py"], cwd=repo_dir)
+with st.container(border=True):
+    if st.button("Failure Time Vs Solution"):
+        subprocess.Popen([sys.executable, "Analysis/fail_time.py"], cwd=repo_dir)
+    st.text("Plot failure time as function of solution, separated by board type and sensor")
 
-if st.button("Failure Time Vs Ph"):
-    subprocess.Popen([sys.executable, "Analysis/Ph_Plots.py"], cwd=repo_dir)
+with st.container(border=True):
+    if st.button("Failure Time Vs Ph"):
+        subprocess.Popen([sys.executable, "Analysis/Ph_Plots.py"], cwd=repo_dir)
+    st.text("Plot failure time as a function of pH")
 
+st.header("Settings")
 if st.button("Update Cached Data"):
     st.write("Updating...")
     subprocess.run([sys.executable, "Analysis/update_cache.py"], cwd=repo_dir)
