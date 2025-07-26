@@ -7,7 +7,7 @@ import pandas as pd
 # Required to show plt plots in Streamlit
 matplotlib.use("TkAgg")
 
-master=adds.get_master(dendrite_score_col=True)
+master=adds.get_master()
 
 # Add column for brightness difference
 master["Brightness Difference"]=master["Brightness Exposed"]-master["Brightness Pristine"]

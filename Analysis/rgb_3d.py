@@ -1,7 +1,7 @@
 import adds
 import plotly.express as px
 
-master = adds.get_master(dendrite_score_col=True)
+master = adds.get_master()
 
 master.dropna(subset="Pattern", inplace=True)
 master["Pattern"] = master["Pattern"].apply(int).apply(str)

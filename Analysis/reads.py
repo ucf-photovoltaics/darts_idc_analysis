@@ -22,6 +22,15 @@ def get_master():
 
     return master
 
+# Get the last cached version of the result of adds.get_master()
+def get_master_cached():
+    try:
+        # Read the file
+        return pd.read_csv("master_cached.csv")
+    except FileNotFoundError:
+        # Return None if not readable
+        return None
+
 # Get a CurrentTime file as a DataFrame with proper data types
 def get_current_time(file_name: str):
     try:
@@ -40,6 +49,10 @@ def get_current_time(file_name: str):
 
 # Get a CF/CV file, (PRISTINE/EXPOSED), as a DataFrame with proper data types
 def get_cf_or_cv(file_name: str):
+    # Ensure file_name is string before using split
+    if type(file_name) != str:
+        return None
+    
     # Get 7 string components of file name
     components = file_name.split(".")[0].split("_")
     # Return None if name is unconventional
