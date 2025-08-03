@@ -40,6 +40,11 @@ with st.container(border=True):
     st.text("Plots the average brightness of each board")
 
 with st.container(border=True):
+    if st.button("Scatterplot Matrix"):
+        subprocess.Popen([sys.executable, "Analysis/scatterplot_matrix.py"], cwd=repo_dir)
+    st.text("Plots a scatterplot matrix for all combinations of two variables")
+
+with st.container(border=True):
     if st.button("Correlation Heatmap"):
         subprocess.Popen([sys.executable, "Analysis/corr_heatmap.py"], cwd=repo_dir)
     st.text("Plots the correlations between all combinations of two variables")
