@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 matplotlib.use("TkAgg")
 
 # Get master
-master = adds.get_master(dendrite_score_col=True)
+master = adds.get_master()
 # Drop columns that are entirely NaN
 master.dropna(axis=1, how="all", inplace=True)
 # Drop columns that are non-numeric
