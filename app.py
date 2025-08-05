@@ -7,20 +7,7 @@ import os
 script_path = os.path.abspath(__file__)
 repo_dir = os.path.dirname(script_path)
 
-# Ensure script is run using Streamlit -----------------------------------------
-# If script wasn't run with Streamlit
-if "--as-streamlit" not in sys.argv:
-    # Rerun using Streamlit. Pass a sentinal "--as-streamlit" param to script,
-    # which will be checked in the if statement
-    subprocess.run(
-        [sys.executable, "-m", "streamlit", "run", script_path, "--", "--as-streamlit"],
-        cwd=repo_dir
-    )
-    # Don't execute the Streamlit code if not being run with Streamlit
-    exit()
-
-# Run Streamlit app ------------------------------------------------------------
-
+# Streamlit App
 st.title("IDC Analysis Plotting Hub")
 
 st.header("Plots")
