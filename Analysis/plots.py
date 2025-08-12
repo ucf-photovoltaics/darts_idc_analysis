@@ -250,11 +250,14 @@ def fail_time_solution():
 
         # Adjust spacing
         g.figure.subplots_adjust(
+            hspace=1,
             left=0.06,
             bottom=0.08,
             right=0.91,
             top=0.94
         )
+
+        g.set_xticklabels(rotation=90)
 
         figs.append(g.figure)
     
