@@ -3,5 +3,5 @@ pandas
 matplotlib
 seaborn
 plotly
-cv2
+opencv-python-headless
 streamlit
