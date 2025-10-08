@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\goodn\\OneDrive\\Documents\\GitHub\\darts_idc_analysis\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\goodn\\OneDrive\\Documents\\GitHub\\darts_idc_analysis\\CT - individual.ipynb||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CT - individual.ipynb||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\goodn\\OneDrive\\Documents\\GitHub\\darts_idc_analysis\\the kids.ipynb||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:the kids.ipynb||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CT - individual.ipynb",
+              "DocumentMoniker": "C:\\Users\\goodn\\OneDrive\\Documents\\GitHub\\darts_idc_analysis\\CT - individual.ipynb",
+              "RelativeDocumentMoniker": "CT - individual.ipynb",
+              "ToolTip": "C:\\Users\\goodn\\OneDrive\\Documents\\GitHub\\darts_idc_analysis\\CT - individual.ipynb",
+              "RelativeToolTip": "CT - individual.ipynb",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABIAAABMAAAA",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAALdSURBVDhPlZQ7axxnFIaf75vLXmcdL7tadEGLkSU3cSRQLiBEKpE0gTSB\u002BAcYXDhFGm0VUjikFlYhEtXCYIlE4CYkZcqEyK7sNALtGCEISNZau9qZ2Zk5KTa70Yy0DnnhMMw5Z55zvpmXUQA7OzuqVqt9ODMz84XW\u002BjogIoKIEEWReJ7XbrVav/q\u002B/\u002Bjw8PCv1dVVXNflkkREAWxtbel6vf7Z/Pz8Q6VU7UKdKIoIw5B2u\u002B0fHx/vAt82m80XjUYj3t/fT/AANIBpmliWhWVZZDKZRGSzWbLZLI7jZCqVyqflcvnrpaWl\u002Bc3NTbW4uJjm9YFaa7TWGIaRCNM0h8Ns2yafz\u002BfK5fInURQ9mJ2dfWd9fZ2VlZXLwOGN1iilEjEYNICLSE5r/dHZ2dl3R0dH73a7XRYWFi4DlVLDZFpaa0zTxLZtgiDA8zwL\u002BGBycvL7jY2N99fW1pienu73ph9OazDIMAzsTAbHKVGpVBgfH6der79t2/aXY2Nj41NTUzASKDHSbSHnr5DzV9A9RbqnKP81VtgmQ0Aum8FxHKtarS4EQXBzeXkZADPNAoi7p/g/fUPcOgT5Ny8ACnRpAuvjr7Cz19Bal05OTqpzc3MKkKs3DD16L34mfPkM8V8jQQcJOuCfEb18RvjnL6jYH3wwo1AomMViUXHxyHEcJ5jKMLDfu0Ph7o8U7z2heO8Jhbs/YC/eQRkmWqmhvQa2Y\u002BQ7hP7ZlAat\u002B9dhJN2QdscbgH1JFBI2fyNs/o7EYbp8SW8Eit\u002Bh9/Qx59v3Od\u002B\u002BT\u002B/pNtLrpNsSGm3sqEe49xhvt0Hs7hG7f\u002BDtNgj3tiHqDdtELthg5IZKQ2kCUQbk30JVb6CqNyB/DVEGqjQBqu\u002B49CJX\u002BlDnyuQ/34AoSJf6Mmx07no6CyM3NG2M2i2MidtXR\u002B0WmBaMOvLg7/xP/F8lwCaA67qilHruOM5DrXUhMfI/FMdx5\u002BDg4LnrugLwN6c3Pe39tjJzAAAAAElFTkSuQmCC",
+              "WhenOpened": "2025-08-20T20:44:06.147Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "the kids.ipynb",
+              "DocumentMoniker": "C:\\Users\\goodn\\OneDrive\\Documents\\GitHub\\darts_idc_analysis\\the kids.ipynb",
+              "RelativeDocumentMoniker": "the kids.ipynb",
+              "ToolTip": "C:\\Users\\goodn\\OneDrive\\Documents\\GitHub\\darts_idc_analysis\\the kids.ipynb",
+              "RelativeToolTip": "the kids.ipynb",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAALdSURBVDhPlZQ7axxnFIaf75vLXmcdL7tadEGLkSU3cSRQLiBEKpE0gTSB\u002BAcYXDhFGm0VUjikFlYhEtXCYIlE4CYkZcqEyK7sNALtGCEISNZau9qZ2Zk5KTa70Yy0DnnhMMw5Z55zvpmXUQA7OzuqVqt9ODMz84XW\u002BjogIoKIEEWReJ7XbrVav/q\u002B/\u002Bjw8PCv1dVVXNflkkREAWxtbel6vf7Z/Pz8Q6VU7UKdKIoIw5B2u\u002B0fHx/vAt82m80XjUYj3t/fT/AANIBpmliWhWVZZDKZRGSzWbLZLI7jZCqVyqflcvnrpaWl\u002Bc3NTbW4uJjm9YFaa7TWGIaRCNM0h8Ns2yafz\u002BfK5fInURQ9mJ2dfWd9fZ2VlZXLwOGN1iilEjEYNICLSE5r/dHZ2dl3R0dH73a7XRYWFi4DlVLDZFpaa0zTxLZtgiDA8zwL\u002BGBycvL7jY2N99fW1pienu73ph9OazDIMAzsTAbHKVGpVBgfH6der79t2/aXY2Nj41NTUzASKDHSbSHnr5DzV9A9RbqnKP81VtgmQ0Aum8FxHKtarS4EQXBzeXkZADPNAoi7p/g/fUPcOgT5Ny8ACnRpAuvjr7Cz19Bal05OTqpzc3MKkKs3DD16L34mfPkM8V8jQQcJOuCfEb18RvjnL6jYH3wwo1AomMViUXHxyHEcJ5jKMLDfu0Ph7o8U7z2heO8Jhbs/YC/eQRkmWqmhvQa2Y\u002BQ7hP7ZlAat\u002B9dhJN2QdscbgH1JFBI2fyNs/o7EYbp8SW8Eit\u002Bh9/Qx59v3Od\u002B\u002BT\u002B/pNtLrpNsSGm3sqEe49xhvt0Hs7hG7f\u002BDtNgj3tiHqDdtELthg5IZKQ2kCUQbk30JVb6CqNyB/DVEGqjQBqu\u002B49CJX\u002BlDnyuQ/34AoSJf6Mmx07no6CyM3NG2M2i2MidtXR\u002B0WmBaMOvLg7/xP/F8lwCaA67qilHruOM5DrXUhMfI/FMdx5\u002BDg4LnrugLwN6c3Pe39tjJzAAAAAElFTkSuQmCC",
+              "WhenOpened": "2025-08-20T20:43:44.092Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

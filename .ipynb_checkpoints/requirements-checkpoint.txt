@@ -1,0 +1,7 @@
+numpy
+pandas
+matplotlib
+seaborn
+plotly
+opencv-python-headless
+streamlit
