@@ -60,9 +60,14 @@ with st.container(border=True):
     st.text("Plot failure time as function of solution, separated by board type and sensor")
 
 with st.container(border=True):
-    if st.button("Failure Time Vs Ph"):
-        subprocess.Popen([sys.executable, "Analysis/Ph_Plots.py"], cwd=repo_dir)
+    if st.button("Failure Time Vs pH"):
+        subprocess.Popen([sys.executable, "Analysis/pH_Plots.py"], cwd=repo_dir)
     st.text("Plot failure time as a function of pH")
+
+with st.container(border=True):
+    if st.button("CF/CV"):
+        subprocess.Popen([sys.executable, "Analysis/CF_CV_plots.py"], cwd=repo_dir)
+    st.text("Plots capacitance, impedance, and phase angle levels for both frequency and voltage")
 
 st.header("Settings")
 if st.button("Update Cached Data"):

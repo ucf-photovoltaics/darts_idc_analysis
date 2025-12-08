@@ -10,15 +10,19 @@ import typing
 import cv2
 import math
 
+
 # Get the cleaned master data
 def get_master(from_cache=True):
     # If cached version is requested, read and return cached version
+    # updated version to prevent nothing from being returned
     if from_cache:
-        return reads.get_master_cached()
+        cached = reads.get_master_cached()
+        if cached is not None:
+            return cached
 
     # Read in data
     master = reads.get_master()
-    
+
     # Add image file names
     for file_name in os.listdir("Imgscans_PRISTINE_sensors"):
         # Get components
@@ -28,6 +32,7 @@ def get_master(from_cache=True):
         mask = (master["Pattern"] == pattern) & (master["Sensor"] == sensor)
         # Store the file name using the mask
         master.loc[mask, "Image_PRISTINE"] = file_name
+
     for file_name in os.listdir("Imgscans_EXPOSED_sensors"):
         # Get components
         batch, pattern, id, _, sensor = file_name.split(".")[0].split("_")
@@ -36,6 +41,7 @@ def get_master(from_cache=True):
         mask = (master["Board ID"] == board_id) & (master["Sensor"] == sensor)
         # Store the file name using the mask
         master.loc[mask, "Image_EXPOSED"] = file_name
+
     # TODO Remove CV, CF, and CurrentTime file names from the stored CSV. Add
     # code here to populate those columns automatically
 
@@ -64,7 +70,7 @@ def get_master(from_cache=True):
         r2, g2, b2 = np.mean(r2), np.mean(g2), np.mean(b2)
 
         # Generate and store score
-        master.loc[master_index, "Dendrite Score"] = math.sqrt((r2 - r1)**2 + (g2 - g1)**2 + (b2 - b1)**2)
+        master.loc[master_index, "Dendrite Score"] = math.sqrt((r2 - r1) ** 2 + (g2 - g1) ** 2 + (b2 - b1) ** 2)
 
         # Store RGB values
         master.loc[master_index, "R_PRISTINE"] = r1
@@ -76,10 +82,10 @@ def get_master(from_cache=True):
 
         # Get brightness values for pristine and exposed images using the mean
         # of the RGB values and store in their own columns
-        pristine_brightness=np.mean([r1, g1, b1])
-        exposed_brightness=np.mean([r2, g2, b2])
-        master.loc[master_index, "Brightness Pristine"]=pristine_brightness
-        master.loc[master_index, "Brightness Exposed"]=exposed_brightness
+        pristine_brightness = np.mean([r1, g1, b1])
+        exposed_brightness = np.mean([r2, g2, b2])
+        master.loc[master_index, "Brightness Pristine"] = pristine_brightness
+        master.loc[master_index, "Brightness Exposed"] = exposed_brightness
 
     # Populate mean RGB and dendrite score
     for i, row in master.iterrows():
@@ -87,13 +93,14 @@ def get_master(from_cache=True):
 
     return master
 
+
 # Get a DataFrame that is the merging of the master data and all the
 # CurrentTime files. Each row represents one current measurement at a given
 # time, and it has data about the sensor, solution, etc.
 def get_master_current_time():
     master = get_master()
 
-    current_time_all = [] # List of all currentTime data frames
+    current_time_all = []  # List of all currentTime data frames
 
     # For each row, read the currentTime file if possible, and append it to list
     for _, row in master.iterrows():
@@ -126,12 +133,13 @@ def get_master_current_time():
 
     return master_current_time
 
+
 # Returns the master merged with all CF files, or all CV files. An "Age" column
 # is added to differentiate "PRISTINE" vs "EXPOSED"
 def get_master_cf_or_cv(cf_or_cv: typing.Literal["CF", "CV"]):
     master = get_master()
 
-    df_all = [] # List of all DataFrames, either cf or cv, has an Age column
+    df_all = []  # List of all DataFrames, either cf or cv, has an Age column
 
     # Populate df_all with both ages
     for age in ["PRISTINE", "EXPOSED"]:
@@ -140,12 +148,12 @@ def get_master_cf_or_cv(cf_or_cv: typing.Literal["CF", "CV"]):
             # Get file name
             baseline_or_post = "Baseline" if age == "PRISTINE" else "Post"
             file_name = row[f"{cf_or_cv}_{baseline_or_post}"]
-            
+
             # Read df, skipping if result is None
             df = reads.get_cf_or_cv(file_name)
             if df is None:
                 continue
-            
+
             # Add Age column to differentiate PRISTINE and EXPOSED
             df["Age"] = age
 
@@ -157,7 +165,7 @@ def get_master_cf_or_cv(cf_or_cv: typing.Literal["CF", "CV"]):
 
     # Convert lists to a concatenation of all their contents
     df_all = pd.concat(df_all, ignore_index=True)
-    
+
     # Join master with baseline files
     master_pristine = master.merge(
         df_all,
